@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Virtual Chemist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fff8ec;
+  --ink: #1d1b2f;
+  --muted: #6b6880;
+  --card: #ffffff;
+  --pink: #ff9db8;
+  --blue: #7cc4ff;
+  --yellow: #ffd35c;
+  --lilac: #b9a2ff;
+  --mint: #8fe3b5;
+  --radius: 18px;
+  --shadow: 4px 4px 0 var(--ink);
+}
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+body {
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: 'Fredoka', ui-rounded, 'Nunito', system-ui, sans-serif;
+  background-color: var(--bg);
+  background-image: radial-gradient(#ecdcbc 1.3px, transparent 1.3px);
+  background-size: 24px 24px;
+}
+button, input { font: inherit; color: inherit; }
+
+/* Buttons */
+.btn {
+  border: 2px solid var(--ink);
+  background: var(--yellow);
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform .08s, box-shadow .08s;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
+.btn:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 var(--ink); }
+.btn.ghost { background: #fff; }
+.btn.small { padding: 6px 12px; font-size: 14px; }
+.btn.block { width: 100%; }
+
+/* Auth */
+#auth { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.auth-card {
+  width: 100%; max-width: 400px; background: var(--card);
+  border: 2px solid var(--ink); border-radius: 28px; box-shadow: 8px 8px 0 var(--ink);
+  padding: 32px 28px; animation: pop .35s ease-out;
+}
+.logo { text-align: center; }
+.logo .flask { font-size: 54px; display: inline-block; animation: float 3s ease-in-out infinite; }
+.logo h1 { font-size: 28px; margin-top: 4px; letter-spacing: -.5px; }
+.logo p { color: var(--muted); margin-top: 4px; font-size: 15px; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 22px 0 18px; padding: 5px; background: #f4ecdb; border-radius: 14px; border: 2px solid var(--ink); }
+.tab { border: 0; background: transparent; padding: 8px; border-radius: 10px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab.active { background: var(--ink); color: #fff; }
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 4px; font-size: 14px; font-weight: 500; color: var(--muted); }
+input {
+  width: 100%; padding: 11px 14px; background: #fff; border: 2px solid var(--ink); border-radius: 12px; outline: none;
+  transition: box-shadow .1s;
+}
+input:focus { box-shadow: 3px 3px 0 var(--lilac); }
+.otp-input { text-align: center; font-size: 28px; letter-spacing: 10px; font-weight: 600; }
+.error { min-height: 20px; margin-top: 12px; color: #d63d5f; font-size: 14px; font-weight: 500; text-align: center; }
+.dev-banner {
+  background: #fff3c4; border: 2px dashed var(--ink); border-radius: 12px; padding: 10px 12px;
+  font-size: 14px; text-align: center;
+}
+.dev-banner b { font-size: 18px; letter-spacing: 3px; }
+.dev-banner button { margin-left: 6px; }
+.link { background: none; border: 0; color: var(--muted); cursor: pointer; text-decoration: underline; justify-self: center; font-size: 14px; }
+.step-title { text-align: center; font-size: 15px; color: var(--muted); }
+
+/* App shell */
+#app { min-height: 100vh; display: flex; flex-direction: column; padding: 18px 22px 22px; gap: 16px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; }
+.brand .flask { font-size: 28px; }
+.nav { display: flex; gap: 6px; padding: 5px; background: #fff; border: 2px solid var(--ink); border-radius: 16px; box-shadow: 3px 3px 0 var(--ink); }
+.nav button { border: 0; background: transparent; padding: 7px 18px; border-radius: 11px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.nav button.active { background: var(--yellow); color: var(--ink); }
+.who { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+.chip { background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 5px 14px; font-weight: 600; }
+
+/* Lab */
+#view-lab { flex: 1; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.palette { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.palette .label { font-weight: 600; color: var(--muted); font-size: 14px; margin-right: 2px; }
+.atom-btn {
+  width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--ink); font-weight: 700; font-size: 18px;
+  cursor: pointer; box-shadow: 3px 3px 0 var(--ink); transition: transform .1s;
+}
+.atom-btn:hover { transform: translateY(-3px) rotate(-6deg); }
+.atom-btn:active { transform: scale(.92); }
+.tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.stage {
+  position: relative; flex: 1; min-height: 420px; background: #fff; border: 2px solid var(--ink);
+  border-radius: 26px; box-shadow: 6px 6px 0 var(--ink); overflow: hidden;
+  background-image: radial-gradient(#efe6d3 1.3px, transparent 1.3px); background-size: 24px 24px;
+}
+#chemCanvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#chemCanvas.grabbing { cursor: grabbing; }
+#fxCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.fx-caption {
+  position: absolute; left: 50%; top: 16px; transform: translate(-50%, -20px); z-index: 5; pointer-events: none;
+  background: var(--yellow); border: 2px solid var(--ink); border-radius: 999px; box-shadow: 4px 4px 0 var(--ink);
+  padding: 8px 18px; font-weight: 700; opacity: 0; transition: transform .3s cubic-bezier(.2, 1.4, .4, 1), opacity .2s;
+  max-width: calc(100% - 32px); text-align: center;
+}
+.fx-caption.show { opacity: 1; transform: translate(-50%, 0); }
+.learn { position: absolute; right: 14px; top: 70px; transform: translateX(30px); z-index: 7; width: min(250px, 38%); background: #fff; border: 2px solid var(--ink); border-radius: 18px; box-shadow: 5px 5px 0 var(--ink); padding: 12px 16px; opacity: 0; pointer-events: none; transition: transform .35s cubic-bezier(.2, 1.4, .4, 1), opacity .25s; }
+.learn.show { opacity: 1; transform: none; }
+.learn-tag { display: inline-block; background: var(--mint); border: 2px solid var(--ink); border-radius: 999px; padding: 0 10px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.learn h4 { margin: 6px 0 2px; font-size: 16px; }
+.learn p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.stage.shake { animation: stageShake .5s linear 3; }
+@keyframes stageShake { 0%,100% { transform: none; } 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-4px, -3px); } 80% { transform: translate(4px, 4px); } }
+.hint { color: var(--muted); font-size: 15px; text-align: center; }
+.hint b { color: var(--ink); }
+.whisper { min-height: 20px; margin: 2px 0 -2px; text-align: center; font-size: 13px; font-style: italic; color: var(--muted); opacity: 0; transition: opacity 1.2s; }
+.whisper.show { opacity: .75; }
+
+/* Result card */
+.hud {
+  position: absolute; right: 18px; bottom: 18px; width: min(380px, calc(100% - 36px)); max-height: calc(100% - 36px); overflow-y: auto;
+  background: #fff; border: 2px solid var(--ink); border-radius: 22px; box-shadow: var(--shadow);
+  padding: 18px; transform: translateY(24px) scale(.96); opacity: 0; pointer-events: none;
+  transition: transform .25s cubic-bezier(.2, 1.4, .4, 1), opacity .2s; z-index: 6;
+}
+.hud.show { transform: none; opacity: 1; pointer-events: auto; }
+.hud-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.formula { display: inline-block; padding: 2px 12px; border: 2px solid var(--ink); border-radius: 999px; background: var(--mint); font-weight: 700; }
+.hud h3 { font-size: 22px; margin-top: 6px; }
+.hud .desc { color: var(--muted); font-size: 14px; margin: 6px 0 12px; line-height: 1.45; }
+.note { border: 2px solid var(--ink); border-radius: 12px; padding: 8px 12px; font-size: 13px; line-height: 1.4; margin-top: 8px; }
+.note b { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.note.safety { background: #ffe1e8; }
+.note.uses { background: #dff0ff; }
+.saved { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+.x { border: 0; background: #f4ecdb; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: 700; }
+
+/* Profile */
+#view-profile { max-width: 980px; width: 100%; margin: 0 auto; display: grid; gap: 18px; align-content: start; }
+.hero {
+  background: var(--lilac); border: 2px solid var(--ink); border-radius: 26px; box-shadow: 6px 6px 0 var(--ink);
+  padding: 24px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+}
+.avatar { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--ink); background: var(--yellow); display: grid; place-items: center; font-size: 32px; font-weight: 700; box-shadow: 3px 3px 0 var(--ink); }
+.hero h2 { font-size: 26px; }
+.hero p { font-size: 14px; opacity: .8; }
+.progress { flex: 1; min-width: 220px; }
+.progress .count { font-weight: 700; font-size: 20px; margin-bottom: 6px; }
+.bar { height: 16px; background: #fff; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--mint); border-right: 2px solid var(--ink); width: 0; transition: width .6s ease; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.mol {
+  background: #fff; border: 2px solid var(--ink); border-radius: 22px; box-shadow: var(--shadow); padding: 16px;
+  animation: pop .35s ease-out both;
+}
+.mol .formula { background: var(--c, var(--mint)); }
+.mol h3 { margin: 8px 0 2px; font-size: 19px; }
+.mol .date { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.mol .desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.mol.locked { background: transparent; border-style: dashed; box-shadow: none; display: grid; place-items: center; text-align: center; min-height: 150px; color: var(--muted); }
+.mol.locked .q { font-size: 40px; font-weight: 700; }
+.empty { text-align: center; padding: 30px; background: #fff; border: 2px dashed var(--ink); border-radius: 22px; }
+.empty p { margin-bottom: 12px; color: var(--muted); }
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+  background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 999px; font-weight: 500; z-index: 50;
+  transition: transform .25s, opacity .25s; max-width: calc(100% - 32px); text-align: center;
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+.pill { font-size: 13px; padding: 4px 12px; border-radius: 999px; background: #fff; border: 2px solid var(--ink); font-weight: 500; }
+
+@keyframes pop { from { transform: scale(.94) translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.handhelp { position: absolute; left: 14px; bottom: 14px; width: 250px; background: #fff; border: 3px solid var(--ink, #1f1b2e); border-radius: 18px; box-shadow: 4px 5px 0 var(--ink, #1f1b2e); padding: 10px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s, transform .2s; z-index: 5; font-size: 13px; }
+.handhelp.show { opacity: 1; pointer-events: auto; transform: none; }
+.hh-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.hh-cam { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #1f1b2e; border: 2px solid var(--ink, #1f1b2e); }
+.hh-cam video, .hh-cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.hh-chip { position: absolute; left: 8px; bottom: 8px; padding: 3px 10px; border-radius: 99px; background: #fff; border: 2px solid var(--ink, #1f1b2e); font-weight: 700; font-size: 12px; }
+.hh-chip.pinch { background: #8fe3b5; }
+.hh-top .hh-cal { margin-left: auto; margin-right: 8px; border: 2px solid var(--ink); background: var(--yellow); border-radius: 999px; padding: 2px 10px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.hh-steps { margin: 10px 0 2px; padding-left: 18px; line-height: 1.5; color: var(--muted, #6b6680); }
+@media (max-width: 600px) { .handhelp { width: 180px; } .hh-steps { display: none; } }
+#view-chat { max-width: 760px; width: 100%; margin: 0 auto; display: flex; flex: 1; min-height: 0; }
+.chatbox { flex: 1; display: flex; flex-direction: column; min-height: 420px; max-height: calc(100vh - 140px); background: #fff; border: 2px solid var(--ink); border-radius: 26px; box-shadow: 6px 6px 0 var(--ink); overflow: hidden; }
+.chat-head { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--lilac); border-bottom: 2px solid var(--ink); }
+.chat-head h2 { font-size: 22px; }
+.chat-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 82%; padding: 9px 14px; border: 2px solid var(--ink); border-radius: 16px; font-size: 14px; line-height: 1.45; }
+.msg.bot { align-self: flex-start; background: #f4ecdb; border-bottom-left-radius: 4px; }
+.msg.me { align-self: flex-end; background: var(--yellow); border-bottom-right-radius: 4px; }
+.msg .pick { display: block; width: 100%; text-align: left; margin-top: 6px; padding: 6px 10px; background: #fff; border: 2px solid var(--ink); border-radius: 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.msg .pick small { display: block; color: var(--muted); margin-top: 2px; }
+.chat-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 8px; }
+.chat-quick button { border: 2px solid var(--ink); background: #fff; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.chat-form { display: flex; gap: 8px; padding: 12px 16px; border-top: 2px solid var(--ink); }
+.chat-form input { flex: 1; min-width: 0; padding: 10px 14px; border: 2px solid var(--ink); border-radius: 12px; font: inherit; outline: none; }
+.bot-body { width: 64px; height: 72px; flex: none; transform-origin: 50% 100%; animation: bot-bob 2.4s ease-in-out infinite; filter: drop-shadow(3px 3px 0 var(--ink)); }
+.bot-body .arm { transform-box: fill-box; transform-origin: 50% 10%; }
+.bot-body.dance { animation: bot-dance .5s ease-in-out infinite; }
+.bot-body.dance .arm.l { animation: bot-armL .25s ease-in-out infinite alternate; }
+.bot-body.dance .arm.r { animation: bot-armR .25s ease-in-out infinite alternate; }
+.bot-body.sad { animation: bot-sad .5s ease-in-out 1; }
+@keyframes bot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes bot-dance { 0% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-14px) rotate(10deg); } 100% { transform: translateY(0) rotate(-10deg); } }
+@keyframes bot-armL { from { transform: rotate(40deg); } to { transform: rotate(150deg); } }
+@keyframes bot-armR { from { transform: rotate(-150deg); } to { transform: rotate(-40deg); } }
+@keyframes bot-sad { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+</style>
+</head>
+<body>
+
+<!-- Login / Sign up -->
+<div id="auth">
+  <div class="auth-card">
+    <div class="logo">
+      <span class="flask">🧪</span>
+      <h1>The Virtual Chemist</h1>
+      <p>Mix atoms. Discover molecules.</p>
+    </div>
+
+    <div id="authStepCreds">
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tabLogin" type="button" role="tab">Log in</button>
+        <button class="tab" id="tabSignup" type="button" role="tab">Sign up</button>
+      </div>
+
+      <form id="loginForm" autocomplete="on">
+        <label>Username or email
+          <input id="loginUser" name="username" autocomplete="username" required>
+        </label>
+        <label>Password
+          <input id="loginPass" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn block" id="loginBtn">Send me a code</button>
+      </form>
+
+      <form id="signupForm" hidden autocomplete="on">
+        <label>Pick a username
+          <input id="signupUser" name="username" autocomplete="username" placeholder="letters, numbers, _" required>
+        </label>
+        <label>Email (we send your login codes here)
+          <input id="signupEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        </label>
+        <label>Password
+          <input id="signupPass" name="password" type="password" autocomplete="new-password" placeholder="at least 8 characters" required>
+        </label>
+        <button class="btn block" id="signupBtn">Create account</button>
+      </form>
+    </div>
+
+    <form id="otpForm" hidden style="margin-top:22px">
+      <p class="step-title" id="otpInfo"></p>
+      <div class="dev-banner" id="devBanner" hidden>
+        Dev mode · your code is <b id="devCode"></b>
+        <button class="btn small ghost" type="button" id="devFill">Use it</button>
+      </div>
+      <input class="otp-input" id="otpInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6-digit code">
+      <button class="btn block" id="otpBtn">Verify &amp; enter lab</button>
+      <button class="link" type="button" id="otpBack">← Back</button>
+    </form>
+
+    <p class="error" id="authError" role="alert"></p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" hidden>
+  <header>
+    <div class="brand"><span class="flask">🧪</span> Virtual Chemist</div>
+    <nav class="nav">
+      <button id="navLab" class="active" type="button">Lab</button>
+      <button id="navChat" type="button">Chat</button>
+      <button id="navProfile" type="button">Profile</button>
+    </nav>
+    <div class="who">
+      <span class="chip" id="whoName"></span>
+      <button class="btn small ghost" id="logoutBtn" type="button">Log out</button>
+    </div>
+  </header>
+
+  <!-- Lab -->
+  <section id="view-lab">
+    <div class="toolbar">
+      <div class="palette" id="palette"><span class="label">Add atoms</span></div>
+      <div class="tools">
+        <span class="pill" id="handStatus" hidden></span>
+        <button class="btn small ghost" id="handBtn" type="button">🖐 Hand mode</button>
+        <button class="btn small ghost" id="resetBtn" type="button">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <canvas id="chemCanvas"></canvas>
+      <canvas id="fxCanvas"></canvas>
+      <div class="fx-caption" id="fxCaption" aria-live="polite"></div>
+      <div class="learn" id="fxLearn"><b class="learn-tag">Learn</b><h4 id="fxLearnTitle"></h4><p id="fxLearnText"></p></div>
+      <div class="hud" id="hud" role="status">
+        <div class="hud-top">
+          <div>
+            <span class="formula" id="hudFormula"></span>
+            <h3 id="hudTitle"></h3>
+          </div>
+          <button class="x" id="hudClose" type="button" aria-label="Close">✕</button>
+        </div>
+        <p class="desc" id="hudDesc"></p>
+        <div class="note safety"><b>Safety</b><span id="hudSafety"></span></div>
+        <div class="note uses"><b>Used for</b><span id="hudUses"></span></div>
+        <div class="saved">
+          <span id="hudSaved"></span>
+          <button class="btn small" id="hudProfile" type="button">My profile →</button>
+        </div>
+      </div>
+
+      <div class="handhelp" id="handHelp">
+        <div class="hh-top"><b>Hand mode</b><button class="hh-cal" id="handCal" type="button">Calibrate</button><button class="x" id="handHelpClose" type="button" aria-label="Turn off hand mode">✕</button></div>
+        <div class="hh-cam">
+          <video id="webcam" autoplay playsinline muted></video>
+          <canvas id="handOverlay" width="320" height="240"></canvas>
+          <span class="hh-chip" id="handChip">Starting camera…</span>
+        </div>
+        <ol class="hh-steps">
+          <li>Show one hand to the camera</li>
+          <li>Pinch thumb + index on an atom</li>
+          <li>Move it next to other atoms, then let go</li>
+          <li>Hold a fist for 1 second to clear the table</li>
+          <li>Secret moves: thumbs up, peace sign, rock sign, tilt your open hand, or a fist that bursts open</li>
+        </ol>
+      </div>
+    </div>
+    <p class="whisper" id="whisper" aria-live="polite"></p>
+    <p class="hint" id="hintLine">Drag atoms next to each other and let go. Try <b>H · H · O</b> first.</p>
+  </section>
+
+  <!-- Chat -->
+  <section id="view-chat" hidden>
+    <div class="chatbox">
+      <div class="chat-head">
+        <svg class="bot-body" id="botBody" viewBox="0 0 64 72" role="img" aria-label="Beaker the helper bot">
+          <line x1="32" y1="4" x2="32" y2="14" stroke="#1d1b2f" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="32" cy="5" r="4" fill="#ff9db8" stroke="#1d1b2f" stroke-width="2.5"/>
+          <g class="arm l"><rect x="4" y="38" width="9" height="20" rx="4.5" fill="#b9a2ff" stroke="#1d1b2f" stroke-width="2.5"/></g>
+          <g class="arm r"><rect x="51" y="38" width="9" height="20" rx="4.5" fill="#b9a2ff" stroke="#1d1b2f" stroke-width="2.5"/></g>
+          <rect x="10" y="14" width="44" height="46" rx="16" fill="#8fe3b5" stroke="#1d1b2f" stroke-width="3"/>
+          <circle cx="24" cy="32" r="5" fill="#fff" stroke="#1d1b2f" stroke-width="2"/><circle cx="40" cy="32" r="5" fill="#fff" stroke="#1d1b2f" stroke-width="2"/>
+          <circle cx="25" cy="33" r="2" fill="#1d1b2f"/><circle cx="41" cy="33" r="2" fill="#1d1b2f"/>
+          <path d="M24 45 Q32 52 40 45" fill="none" stroke="#1d1b2f" stroke-width="3" stroke-linecap="round"/>
+          <rect x="20" y="62" width="9" height="8" rx="3" fill="#ffd35c" stroke="#1d1b2f" stroke-width="2.5"/>
+          <rect x="35" y="62" width="9" height="8" rx="3" fill="#ffd35c" stroke="#1d1b2f" stroke-width="2.5"/>
+        </svg>
+        <div><h2>Beaker</h2><p class="muted">Your lab buddy. Ask about any molecule!</p></div>
+      </div>
+      <div class="chat-log" id="chatLog" aria-live="polite"></div>
+      <div class="chat-quick" id="chatQuick"></div>
+      <form class="chat-form" id="chatForm" autocomplete="off">
+        <input id="chatQ" placeholder="Ask: what is poisonous? what do we breathe?" maxlength="120">
+        <button class="btn" type="submit">Send</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Profile -->
+  <section id="view-profile" hidden>
+    <div class="hero">
+      <div class="avatar" id="avatar">?</div>
+      <div>
+        <h2 id="profName"></h2>
+        <p id="profJoined"></p>
+      </div>
+      <div class="progress">
+        <div class="count" id="profCount"></div>
+        <div class="bar"><i id="profBar"></i></div>
+      </div>
+    </div>
+    <div id="profEmpty" class="empty" hidden>
+      <p>You haven't discovered anything yet.</p>
+      <button class="btn" id="goLab" type="button">Go mix some atoms</button>
+    </div>
+    <div class="grid" id="profGrid"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const INK = '#1d1b2f';
+const FONT = "Fredoka, ui-rounded, system-ui, sans-serif";
+
+/* ---------- helpers ---------- */
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+let toastTimer;
+function toast(message) {
+  const t = $('#toast');
+  t.textContent = message;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ---------- session + API ---------- */
+const session = {
+  token: localStorage.getItem('vc_token'),
+  user: localStorage.getItem('vc_user'),
+  set(token, user) {
+    this.token = token; this.user = user;
+    localStorage.setItem('vc_token', token);
+    localStorage.setItem('vc_user', user);
+  },
+  clear() {
+    this.token = this.user = null;
+    localStorage.removeItem('vc_token');
+    localStorage.removeItem('vc_user');
+  }
+};
+
+function errorText(data, status) {
+  const d = data && data.detail;
+  if (Array.isArray(d) && d.length) return String(d[0].msg).replace(/^Value error, /, '');
+  if (typeof d === 'string') return d;
+  return `Something went wrong (${status}).`;
+}
+
+async function api(path, { method = 'GET', body, auth = true } = {}) {
+  const headers = {};
+  if (body) headers['Content-Type'] = 'application/json';
+  if (auth && session.token) headers.Authorization = `Bearer ${session.token}`;
+  let res;
+  try {
+    res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  } catch {
+    throw new Error("Can't reach the server. Is it running?");
+  }
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    if (res.status === 401 && auth) { leaveApp(); toast('Session ended. Please log in again.'); }
+    throw new Error(errorText(data, res.status));
+  }
+  return data;
+}
+
+/* ---------- auth UI ---------- */
+let pendingUser = '';
+const authError = (msg = '') => { $('#authError').textContent = msg; };
+
+function setTab(login) {
+  $('#tabLogin').classList.toggle('active', login);
+  $('#tabSignup').classList.toggle('active', !login);
+  $('#loginForm').hidden = !login;
+  $('#signupForm').hidden = login;
+  authError();
+}
+$('#tabLogin').onclick = () => setTab(true);
+$('#tabSignup').onclick = () => setTab(false);
+
+function showCreds() {
+  $('#authStepCreds').hidden = false;
+  $('#otpForm').hidden = true;
+  $('#loginPass').value = '';
+  $('#otpInput').value = '';
+  authError();
+}
+
+async function withBusy(btn, fn) {
+  btn.disabled = true;
+  try { await fn(); }
+  catch (e) { authError(e.message); }
+  finally { btn.disabled = false; }
+}
+
+$('#signupForm').onsubmit = (e) => {
+  e.preventDefault();
+  const username = $('#signupUser').value.trim();
+  const email = $('#signupEmail').value.trim();
+  const password = $('#signupPass').value;
+  if (password.length < 8) return authError('Password needs at least 8 characters.');
+  withBusy($('#signupBtn'), async () => {
+    const data = await api('/api/auth/register', { method: 'POST', body: { username, password, email }, auth: false });
+    $('#signupPass').value = '';
+    $('#loginUser').value = data.username;
+    setTab(true);
+    toast('Account created! Log in to continue.');
+  });
+};
+
+$('#loginForm').onsubmit = (e) => {
+  e.preventDefault();
+  const identifier = $('#loginUser').value.trim();
+  const password = $('#loginPass').value;
+  withBusy($('#loginBtn'), async () => {
+    const data = await api('/api/auth/login', { method: 'POST', body: { identifier, password }, auth: false });
+    pendingUser = data.username;
+    $('#authStepCreds').hidden = true;
+    $('#otpForm').hidden = false;
+    $('#otpInfo').textContent = data.email_hint
+      ? `We emailed a 6-digit code to ${data.email_hint}. It expires in ${Math.round(data.expires_in / 60)} minutes.`
+      : `Enter the 6-digit code for ${username.toLowerCase()}. It expires in ${Math.round(data.expires_in / 60)} minutes.`;
+    $('#devBanner').hidden = !data.dev_otp;
+    $('#devCode').textContent = data.dev_otp || '';
+    authError();
+    $('#otpInput').focus();
+  });
+};
+
+$('#devFill').onclick = () => { $('#otpInput').value = $('#devCode').textContent; };
+$('#otpBack').onclick = showCreds;
+
+$('#otpForm').onsubmit = (e) => {
+  e.preventDefault();
+  const otp = $('#otpInput').value.trim();
+  if (!/^\d{6}$/.test(otp)) return authError('Enter the 6-digit code.');
+  withBusy($('#otpBtn'), async () => {
+    const data = await api('/api/auth/verify-otp', { method: 'POST', body: { username: pendingUser, otp }, auth: false });
+    session.set(data.token, data.username);
+    enterApp();
+  });
+};
+
+/* ---------- app shell ---------- */
+function enterApp() {
+  $('#auth').hidden = true;
+  $('#app').hidden = false;
+  $('#whoName').textContent = '@' + session.user;
+  showView('lab');
+  Lab.start();
+    Bot.nextHint();
+}
+
+function leaveApp() {
+  session.clear();
+  Lab.stop();
+  $('#app').hidden = true;
+  $('#auth').hidden = false;
+  showCreds();
+  setTab(true);
+}
+
+$('#logoutBtn').onclick = async () => {
+  try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
+  leaveApp();
+};
+
+function showView(name) {
+  for (const v of ['lab', 'chat', 'profile']) {
+    $('#view-' + v).hidden = v !== name;
+    $('#nav' + v[0].toUpperCase() + v.slice(1)).classList.toggle('active', v === name);
+  }
+  Lab.visible = name === 'lab';
+  if (name === 'lab') Lab.resize();
+  else if (name === 'chat') Bot.greet();
+  else loadProfile();
+}
+$('#navChat').onclick = () => showView('chat');
+$('#navLab').onclick = () => showView('lab');
+$('#navProfile').onclick = () => showView('profile');
+$('#goLab').onclick = () => showView('lab');
+$('#hudProfile').onclick = () => showView('profile');
+
+/* ---------- profile ---------- */
+const CARD_COLORS = ['#ff9db8', '#7cc4ff', '#ffd35c', '#b9a2ff', '#8fe3b5'];
+function colorFor(text) {
+  let h = 0;
+  for (const ch of text) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return CARD_COLORS[h % CARD_COLORS.length];
+}
+
+async function loadProfile() {
+  let data;
+  try { data = await api('/api/chemist/profile'); }
+  catch (e) { return toast(e.message); }
+
+  $('#avatar').textContent = data.username.charAt(0).toUpperCase();
+  $('#profName').textContent = '@' + data.username;
+  $('#profJoined').textContent = 'Chemist since ' + new Date(data.joined).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  $('#profCount').textContent = `${data.discovered_count} of ${data.total_molecules} molecules found`;
+  $('#profBar').style.width = data.total_molecules ? `${(data.discovered_count / data.total_molecules) * 100}%` : '0';
+  $('#profEmpty').hidden = data.discovered_count > 0;
+
+  const grid = $('#profGrid');
+  grid.replaceChildren();
+  data.discoveries.forEach((d, i) => {
+    const card = el('div', 'mol');
+    card.style.animationDelay = `${i * 60}ms`;
+    const formula = el('span', 'formula', d.formula);
+    formula.style.setProperty('--c', colorFor(d.formula));
+    card.append(
+      formula,
+      el('h3', '', d.name),
+      el('div', 'date', 'Found ' + new Date(d.discovered_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })),
+      el('p', 'desc', d.description)
+    );
+    grid.append(card);
+  });
+  for (let i = 0; i < data.total_molecules - data.discovered_count; i++) {
+    const card = el('div', 'mol locked');
+    const inner = el('div');
+    inner.append(el('div', 'q', '?'), el('div', '', 'Still hidden'));
+    card.append(inner);
+    grid.append(card);
+  }
+}
+
+/* ---------- helper bot (chat tab + hint line) ---------- */
+const Bot = (() => {
+  const body = $('#botBody'), log = $('#chatLog'), form = $('#chatForm'), input = $('#chatQ'), hintLine = $('#hintLine');
+  const DEFAULT_HINT = 'Drag atoms next to each other and let go. Try H \u00b7 H \u00b7 O first.';
+  let greeted = false;
+
+  function addMsg(who, text, picks = []) {
+    const m = el('div', 'msg ' + who, text);
+    picks.forEach(p => {
+      const b = el('button', 'pick', `${p.atoms.join(' + ')} \u2192 ${p.formula} (${p.name})`);
+      b.type = 'button';
+      b.append(el('small', '', p.description));
+      b.onclick = () => ask(`how do I make ${p.name}?`, `Try ${p.atoms.join(' + ')} in the lab to make ${p.name}!`);
+      m.append(b);
+    });
+    log.append(m);
+    log.scrollTop = log.scrollHeight;
+  }
+  function ask(q, answer) { addMsg('me', q); addMsg('bot', answer); }
+
+  function dance(ms = 2500) {
+    body.classList.remove('sad'); body.classList.add('dance');
+    clearTimeout(dance.t);
+    dance.t = setTimeout(() => body.classList.remove('dance'), ms);
+  }
+  function sad() { body.classList.remove('sad'); void body.getBoundingClientRect(); body.classList.add('sad'); }
+
+  function setHint(prefix, h) {
+    hintLine.textContent = '';
+    if (!h) { hintLine.textContent = prefix; return; }
+    hintLine.append(prefix + ' Try ', el('b', '', h.atoms.join(' \u00b7 ')), ` to make ${h.name}.`);
+  }
+
+  async function nextHint(prefix = '') {
+    try {
+      const h = await api('/api/chemist/hint');
+      if (h.done) { setHint('You found every molecule. Amazing!'); return null; }
+      setHint(prefix, h);
+      return h;
+    } catch { setHint(DEFAULT_HINT); return null; }
+  }
+
+  function celebrate(data) {
+    addMsg('bot', data.new_discovery ? `Woo-hoo! You just made ${data.name} (${data.formula}). New discovery!` : `Nice, ${data.name} again!`);
+    dance(3500);
+    nextHint(data.new_discovery ? `${data.name} saved!` : 'Nice!');
+  }
+  function failed() {
+    sad();
+    nextHint("That mix doesn't work.");
+  }
+
+  async function search(q) {
+    if (/^(hint|help|what should i (try|make)|idea)/i.test(q)) {
+      const h = await nextHint();
+      addMsg('bot', h ? `Try ${h.atoms.join(' + ')} to make ${h.name} (${h.formula})!` : "You've found everything!");
+      dance(1500);
+      return;
+    }
+    try {
+      const r = await api('/api/chemist/search?q=' + encodeURIComponent(q));
+      const top = r.results.filter(x => x.similarity > 0.12);
+      if (!top.length) addMsg('bot', "Hmm, I don't know one like that. Try other words!");
+      else { addMsg('bot', `Here's what matches "${q}":`, top); dance(1200); }
+    } catch (err) { addMsg('bot', err.message); }
+  }
+
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (q.length < 2) return;
+    addMsg('me', q);
+    input.value = '';
+    search(q);
+  };
+  ['hint', 'what is poisonous?', 'what do we breathe?', 'used in cleaning', 'fuel for rockets'].forEach(q => {
+    const b = el('button', '', q);
+    b.type = 'button';
+    b.onclick = () => { addMsg('me', q); search(q); };
+    $('#chatQuick').append(b);
+  });
+
+  function greet() {
+    if (greeted) return;
+    greeted = true;
+    addMsg('bot', "Hi, I'm Beaker! Ask me about any molecule, like 'what is poisonous?', or type 'hint' for an idea.");
+    dance(2000);
+  }
+  return { celebrate, failed, nextHint, greet };
+})();
+
+/* ---------- lab ---------- */
+const ELEMENTS = {
+  H:  { color: '#ff9db8', r: 30 },
+  O:  { color: '#7cc4ff', r: 38 },
+  C:  { color: '#ffd35c', r: 36 },
+  Si: { color: '#b9a2ff', r: 42 },
+  N:  { color: '#8fe3b5', r: 36 },
+  Cl: { color: '#b6f26b', r: 40 },
+  Na: { color: '#ffb07c', r: 40 },
+  S:  { color: '#f6e27a', r: 40 },
+};
+const STARTER = ['H', 'H', 'H', 'H', 'O', 'O', 'C', 'N', 'Cl', 'Na', 'Si', 'S'];
+const BENT = new Set(['H2O', 'H2S', 'SO2', 'NO2', 'O3']);
+const LINEAR = new Set(['CO2', 'N2O', 'HCN', 'SiO2', 'C2H2']);
+const LINK_GAP = 30;
+const FUSE_LIFETIME = 4500;
+
+/* --- easter eggs --- */
+// Exact mixes (sorted symbols) that are not real molecules in the database
+const CLIENT_EGGS = {
+  'H-O-O': 'pour',
+  'H-H-H-H-H-H': 'bomb',
+  'H-H-Na-O': 'sodium',
+};
+// Real molecules that also get a little show
+const FORMULA_EGGS = { O2: 'breathe', N2O: 'laugh' };
+
+const Eggs = (() => {
+  const fx = $('#fxCanvas'), g = fx.getContext('2d');
+  const stage = $('#stage'), cap = $('#fxCaption');
+  let W = 0, H = 0, raf = 0, run = null, parts = [], learnShown = false;
+  let capTimer = null, learnTimer = null, hooks = {};
+  const learnEl = $('#fxLearn');
+  const LEARN = {
+    pour: ['Why is water H\u2082O?', 'Oxygen needs 2 more electrons, and each hydrogen has 1 to share. So one oxygen bonds with two hydrogens, bent at about 104.5\u00b0, which makes water polar and a great solvent. (HO\u2082 exists only as a fleeting radical, so it is not a stable compound.)'],
+    bomb: ['Fusion vs chemistry', 'Real H-bombs use nuclear fusion: hydrogen nuclei merge into helium and release huge energy (E = mc\u00b2). It powers the Sun. Chemical reactions, like everything else in this game, only rearrange electrons; they never change the nucleus.'],
+    sodium: ['Why sodium hates water', '2Na + 2H\u2082O \u2192 2NaOH + H\u2082 + heat. Sodium gives up its outer electron very easily. The heat can ignite the hydrogen gas it releases, which is why sodium is stored under oil.'],
+    breathe: ['Oxygen in your life', 'O\u2082 makes up about 21% of air. Plants make it by photosynthesis, and your cells use it to release energy from food. Each O atom shares two bonds with the other: O=O.'],
+    laugh: ['Laughing gas', 'Nitrous oxide (N\u2082O) was used as an anaesthetic from the 1840s. Today it is also the propellant in whipped-cream cans and is a greenhouse gas.'],
+  };
+  function showLearn(name) {
+    const l = LEARN[name]; if (!l) return;
+    $('#fxLearnTitle').textContent = l[0]; $('#fxLearnText').textContent = l[1];
+    learnEl.classList.add('show');
+    clearTimeout(learnTimer); learnTimer = setTimeout(() => learnEl.classList.remove('show'), 9000);
+  }
+
+  function size() {
+    const r = stage.getBoundingClientRect();
+    W = fx.width = Math.max(1, Math.round(r.width));
+    H = fx.height = Math.max(1, Math.round(r.height));
+  }
+  function caption(text, ms = 3600) {
+    cap.textContent = text; cap.classList.add('show');
+    clearTimeout(capTimer); capTimer = setTimeout(() => cap.classList.remove('show'), ms);
+  }
+  const ease = (t) => t * t * (3 - 2 * t);
+  const clamp01 = (t) => Math.min(1, Math.max(0, t));
+
+  const SHOWS = {
+    pour: {
+      ms: 4200, text: 'HO\u2082? Not a stable molecule... so here is a glass of water instead!',
+      draw(t) {
+        const cx = W / 2, gw = Math.min(150, W * .3), gh = gw * 1.25, top = H * .5, bottom = top + gh;
+        const level = ease(clamp01((t - .2) / .6));
+        const fade = 1 - clamp01((t - .92) / .08);
+        g.globalAlpha = fade;
+        // stream
+        if (t > .08 && t < .85) {
+          const len = Math.min((t - .08) / .12, 1) * (bottom - gh * level - 20 - 30);
+          g.fillStyle = '#6fc3ff'; g.fillRect(cx - 7, 30, 14, 30 + len);
+          g.beginPath(); g.arc(cx, 60 + len, 10, 0, 7); g.fill();
+        }
+        // tap/jug
+        g.fillStyle = '#ffd24a'; g.strokeStyle = '#1b1b1f'; g.lineWidth = 3;
+        g.beginPath(); g.roundRect(cx - 50, 6, 100, 30, 10); g.fill(); g.stroke();
+        // water
+        const wh = gh * level;
+        g.fillStyle = '#6fc3ff';
+        g.beginPath(); g.moveTo(cx - gw / 2 + 6, bottom - wh); g.lineTo(cx + gw / 2 - 6, bottom - wh);
+        g.lineTo(cx + gw / 2 - 14, bottom - 4); g.lineTo(cx - gw / 2 + 14, bottom - 4); g.closePath(); g.fill();
+        // glass
+        g.strokeStyle = '#1b1b1f'; g.lineWidth = 4; g.lineJoin = 'round';
+        g.beginPath(); g.moveTo(cx - gw / 2, top); g.lineTo(cx - gw / 2 + 10, bottom); g.lineTo(cx + gw / 2 - 10, bottom); g.lineTo(cx + gw / 2, top); g.stroke();
+        // splash drops
+        if (t > .2 && t < .85 && Math.random() < .5) parts.push({ x: cx, y: top, vx: (Math.random() - .5) * 4, vy: -2 - Math.random() * 3, life: 1, r: 3 + Math.random() * 3, c: '#6fc3ff' });
+        g.globalAlpha = 1;
+      },
+    },
+    bomb: {
+      ms: 6500, text: 'Six hydrogens fusing... BOOM! (Cartoon H-bomb. Please do not try at home.)', shake: true,
+      draw(t) {
+        const cx = W / 2, cy = H * .5, maxR = Math.hypot(W, H) * .42;
+        const grow = ease(clamp01(t / .45));
+        const fade = 1 - clamp01((t - .7) / .3);
+        // blast spheres: a lumpy fireball that cools into dark smoke
+        const heat = 1 - clamp01((t - .15) / .5);
+        const r = 20 + grow * maxR;
+        g.globalAlpha = fade;
+        for (let i = 0; i < 14; i++) {
+          const ang = i / 14 * Math.PI * 2 + i * .7;
+          const lump = r * (.55 + .25 * Math.sin(i * 2.3 + t * 3));
+          const d = r * .42 * (1 + .3 * Math.sin(i * 1.7));
+          const x = cx + Math.cos(ang) * d, y = cy + Math.sin(ang) * d;
+          const grad = g.createRadialGradient(x, y, 0, x, y, lump);
+          grad.addColorStop(0, `rgba(255,${Math.round(220 * heat + 60)},${Math.round(120 * heat)},.95)`);
+          grad.addColorStop(.6, `rgba(${Math.round(255 * heat + 70)},${Math.round(110 * heat + 50)},${Math.round(40 * heat + 50)},.8)`);
+          grad.addColorStop(1, 'rgba(60,50,50,0)');
+          g.fillStyle = grad; g.beginPath(); g.arc(x, y, lump, 0, 7); g.fill();
+        }
+        // white-hot core
+        const core = g.createRadialGradient(cx, cy, 0, cx, cy, r * .6);
+        core.addColorStop(0, `rgba(255,255,230,${heat})`); core.addColorStop(1, 'rgba(255,200,90,0)');
+        g.fillStyle = core; g.beginPath(); g.arc(cx, cy, r * .6, 0, 7); g.fill();
+        // expanding shockwave rings
+        for (let i = 0; i < 3; i++) {
+          const k = clamp01((t - i * .07) / .6);
+          if (k > 0 && k < 1) { g.strokeStyle = `rgba(255,235,200,${(1 - k) * .9})`; g.lineWidth = 6 * (1 - k) + 1; g.beginPath(); g.arc(cx, cy, k * maxR * 1.6, 0, 7); g.stroke(); }
+        }
+        g.globalAlpha = 1;
+        if (t < .12) { g.fillStyle = `rgba(255,255,255,${1 - t / .12})`; g.fillRect(0, 0, W, H); }
+        else if (t < .6) { g.fillStyle = `rgba(255,120,40,${.25 * (1 - (t - .12) / .48)})`; g.fillRect(0, 0, W, H); }
+        // embers fly out in all directions
+        if (t < .4) for (let i = 0; i < 6; i++) {
+          const ang = Math.random() * Math.PI * 2, sp = 4 + Math.random() * 10;
+          parts.push({ x: cx, y: cy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 1, r: 2 + Math.random() * 4, c: Math.random() < .5 ? '#ffd24a' : '#ff5a36' });
+        }
+      },
+    },
+    sodium: {
+      ms: 2600, text: 'Sodium + water: fizz, pop, and a very angry lab teacher!', shake: true,
+      draw(t) {
+        const cx = W / 2, cy = H * .55;
+        g.fillStyle = '#9ed8ff'; g.fillRect(cx - 150, cy, 300, 70);
+        g.strokeStyle = '#1b1b1f'; g.lineWidth = 4; g.strokeRect(cx - 150, cy, 300, 70);
+        const dart = Math.sin(t * 20) * 90 * (1 - t * .6);
+        g.fillStyle = '#ffb07c'; g.beginPath(); g.arc(cx + dart, cy - 4, 18, 0, 7); g.fill(); g.stroke();
+        for (let i = 0; i < 4; i++) parts.push({ x: cx + dart, y: cy - 8, vx: (Math.random() - .5) * 7, vy: -2 - Math.random() * 5, life: 1, r: 2 + Math.random() * 4, c: Math.random() < .5 ? '#ffd24a' : '#ff7a2f' });
+        if (t > .8) { const k = (t - .8) / .2; g.strokeStyle = `rgba(255,150,40,${1 - k})`; g.lineWidth = 10; g.beginPath(); g.arc(cx + dart, cy, k * 220, 0, 7); g.stroke(); }
+      },
+    },
+    breathe: {
+      ms: 3200, text: 'O\u2082: the stuff you are breathing right now. In... and out.',
+      draw(t) {
+        if (t < .8 && Math.random() < .6) parts.push({ x: Math.random() * W, y: H + 10, vx: (Math.random() - .5), vy: -2 - Math.random() * 2.5, life: 1.4, r: 6 + Math.random() * 16, c: 'ring', wob: Math.random() * 6 });
+      },
+    },
+    laugh: {
+      ms: 3000, text: 'Laughing gas! Ha ha ha ha!',
+      draw(t) {
+        if (t < .8 && Math.random() < .25) parts.push({ x: Math.random() * W, y: H * .8, vx: (Math.random() - .5) * 2, vy: -2 - Math.random() * 2, life: 1.3, r: 18 + Math.random() * 22, c: 'text', txt: ['ha', 'HA!', 'hehe', 'ha ha'][Math.floor(Math.random() * 4)], wob: Math.random() * 6 });
+      },
+    },
+  };
+
+  function step() {
+    const t = (performance.now() - run.start) / run.show.ms;
+    g.clearRect(0, 0, W, H);
+    if (t < 1) run.show.draw(t);
+    parts = parts.filter(p => p.life > 0);
+    for (const p of parts) {
+      p.x += p.vx + (p.wob ? Math.sin(p.life * 8 + p.wob) * .8 : 0); p.y += p.vy;
+      if (p.c !== 'ring' && p.c !== 'text') p.vy += .22;
+      p.life -= .014;
+      g.globalAlpha = Math.max(0, Math.min(1, p.life));
+      if (p.c === 'ring') { g.strokeStyle = '#4aa8e8'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.stroke(); }
+      else if (p.c === 'text') { g.fillStyle = '#1b1b1f'; g.font = `700 ${p.r}px system-ui, sans-serif`; g.textAlign = 'center'; g.fillText(p.txt, p.x, p.y); }
+      else { g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.fill(); }
+      g.globalAlpha = 1;
+    }
+    if (t > .3 && !learnShown) { learnShown = true; showLearn(run.name); }
+    if (t < 1 || parts.length) raf = requestAnimationFrame(step);
+    else { const r = run; stop(); if (hooks.end) hooks.end(r.name, r.opts); }
+  }
+  function stop() {
+    cancelAnimationFrame(raf); raf = 0; run = null; parts = [];
+    g.clearRect(0, 0, W, H); stage.classList.remove('shake'); learnEl.classList.remove('show'); learnShown = false;
+  }
+  const found = new Set(JSON.parse(localStorage.getItem('vc_eggs') || '[]'));
+  function play(name, text, opts = {}) {
+    const show = SHOWS[name];
+    if (!show) return;
+    found.add(name); localStorage.setItem('vc_eggs', JSON.stringify([...found]));
+    stop(); size();
+    run = { show, name, opts, start: performance.now() };
+    if (hooks.start) hooks.start(name, opts);
+    const msg = text || show.text;
+    caption(msg, show.ms);
+    if (show.shake) { void stage.offsetWidth; stage.classList.add('shake'); }
+    toast(msg);
+    raf = requestAnimationFrame(step);
+  }
+  return { play, found, setHooks: (h) => { hooks = h; } };
+})();
+
+const Lab = (() => {
+  const canvas = $('#chemCanvas');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0;
+  let atoms = [], molecules = [], particles = [];
+  let nextId = 1, grabbed = null, busy = false, running = false;
+  const api_ = { visible: true };
+  const hand = { on: false, cursor: null, target: null, pinching: false, camera: null, hands: null };
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    if (!rect.width) return;
+    W = rect.width; H = rect.height;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    atoms.forEach(a => { a.x = Math.min(Math.max(a.x, a.r), W - a.r); a.y = Math.min(Math.max(a.y, a.r), H - a.r); });
+  }
+
+  // atoms and the "close enough to bond" distance grow in hand mode, since a hand is less precise than a mouse
+  const HAND_SCALE = 1.3;
+  const scale = () => (hand.on ? HAND_SCALE : 1);
+  function applyScale() {
+    atoms.forEach(a => {
+      a.r = a.base * scale();
+      a.x = Math.min(Math.max(a.x, a.r), W - a.r);
+      a.y = Math.min(Math.max(a.y, a.r), H - a.r);
+    });
+  }
+
+  function spawn(symbol, x, y) {
+    const cfg = ELEMENTS[symbol];
+    const atom = {
+      id: nextId++, symbol, base: cfg.r, r: cfg.r * scale(), color: cfg.color,
+      x: x ?? cfg.r + Math.random() * (W - cfg.r * 2),
+      y: y ?? cfg.r + Math.random() * (H - cfg.r * 2),
+      vx: (Math.random() - .5) * .7, vy: (Math.random() - .5) * .7,
+      fused: false, shakeUntil: 0,
+    };
+    atoms.push(atom);
+    return atom;
+  }
+
+  function reset() {
+    atoms = []; molecules = []; particles = []; grabbed = null;
+    closeHud();
+    STARTER.forEach(s => spawn(s));
+  }
+
+  // atoms fly in from the edges, gather in the middle, pop, and then the show starts
+  const EGG_ATOMS = {
+    pour: ['H', 'H', 'O'], bomb: ['H', 'H', 'H', 'H', 'H', 'H'], sodium: ['Na', 'O', 'H', 'H'],
+    breathe: ['O', 'O'], laugh: ['N', 'N', 'O'],
+  };
+  let summoning = false;
+  function summon(egg, text) {
+    const syms = EGG_ATOMS[egg];
+    if (summoning || !syms) return Eggs.play(egg, text);
+    summoning = true;
+    const born = performance.now();
+    const group = syms.map((s, i) => {
+      const side = Math.random() * Math.PI * 2;
+      const a = spawn(s, W / 2 + Math.cos(side) * W, H / 2 + Math.sin(side) * H);
+      const ang = (i / syms.length) * Math.PI * 2 - Math.PI / 2, ring = syms.length > 1 ? 34 + a.r * 1.1 : 0;
+      a.tx = W / 2 + Math.cos(ang) * ring; a.ty = H * .55 + Math.sin(ang) * ring;
+      a.fused = true; a.born = born; a.vx = a.vy = 0;
+      return a;
+    });
+    setChip('Gathering atoms\u2026');
+    setTimeout(() => {
+      group.forEach(a => { burst(a.x, a.y); atoms.splice(atoms.indexOf(a), 1); });
+      summoning = false;
+      Eggs.play(egg, text);
+    }, 1500);
+  }
+
+  // the table is cleared when an egg starts: the bomb blasts everything away, the others sweep it off
+  function wipeTable(name) {
+    const cx = W / 2, cy = H * .6, now = performance.now();
+    grabbed = null; hand.pinching = false; hand.target = null; hand.cursor = null; closeHud();
+    atoms.forEach(a => {
+      // every atom runs sideways off the screen: left half goes left, right half goes right
+      const dir = a.x < cx ? -1 : 1;
+      const sp = (name === 'bomb' ? 22 : 14) + Math.random() * 8;
+      a.debris = true; a.fused = true; a.born = now; a.dtime = now; a.tx = a.x; a.ty = a.y;
+      a.vx = dir * sp; a.vy = (Math.random() - .5) * 2;
+      burst(a.x, a.y);
+    });
+    molecules = [];
+  }
+  Eggs.setHooks({
+    start(name, opts) { if (!opts.keep) wipeTable(name); },
+    end(name, opts) { if (!opts.keep) { summoning = false; reset(); toast('Table restored. Try another mix!'); } },
+  });
+
+  /* --- grouping + submit --- */
+  function clusterOf(start) {
+    const seen = new Set([start]);
+    const queue = [start];
+    while (queue.length) {
+      const a = queue.pop();
+      for (const b of atoms) {
+        if (seen.has(b) || b.fused) continue;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < a.r + b.r + LINK_GAP * scale()) { seen.add(b); queue.push(b); }
+      }
+    }
+    return [...seen];
+  }
+
+  async function evaluateAround(atom) {
+    if (busy || atom.fused) return;
+    const cluster = clusterOf(atom);
+    if (cluster.length < 2) return;
+    const nearest = cluster
+      .sort((a, b) => Math.hypot(a.x - atom.x, a.y - atom.y) - Math.hypot(b.x - atom.x, b.y - atom.y))
+      .slice(0, 6);
+    const key = nearest.map(a => a.symbol).sort().join('-');
+    if (cluster.length === nearest.length && CLIENT_EGGS[key]) {
+      const egg = CLIENT_EGGS[key];
+      nearest.forEach(a => { atoms.splice(atoms.indexOf(a), 1); });
+      if (hand.target && nearest.includes(hand.target)) hand.target = null;
+      Eggs.play(egg);
+      return;
+    }
+    busy = true;
+    try {
+      const data = await api('/api/chemist/combine', { method: 'POST', body: { atoms: nearest.map(a => a.symbol) } });
+      if (data.success) {
+        if (FORMULA_EGGS[data.formula]) Eggs.play(FORMULA_EGGS[data.formula], undefined, { keep: true });
+        // pick the atoms the server actually used, closest first
+        const pool = [...nearest];
+        const used = data.used_atoms.map(sym => {
+          const i = pool.findIndex(a => a.symbol === sym);
+          return pool.splice(i, 1)[0];
+        });
+        fuse(used, data);
+      } else if (cluster.length >= 3) nope(nearest);
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      busy = false;
+    }
+  }
+
+  function nope(group) {
+    const until = performance.now() + 500;
+    group.forEach(a => { a.shakeUntil = until; });
+    Bot.failed();
+    toast("Hmm, nothing happens with those. Try another mix!");
+  }
+
+  function fuse(group, data) {
+    const counts = {};
+    group.forEach(a => { counts[a.symbol] = (counts[a.symbol] || 0) + 1; });
+    const nonH = group.filter(a => a.symbol !== 'H');
+    const pool = nonH.length ? nonH : group;
+    const center = pool.reduce((best, a) => (counts[a.symbol] < counts[best.symbol] ? a : best), pool[0]);
+    const others = group.filter(a => a !== center);
+    const cx = Math.min(Math.max(center.x, 160), W - 160);
+    const cy = Math.min(Math.max(center.y, 140), H - 140);
+
+    center.tx = cx; center.ty = cy;
+    others.forEach((a, i) => {
+      const dist = center.r + a.r + 14;
+      let angle;
+      if (others.length === 1) angle = 0;
+      else if (others.length === 2 && BENT.has(data.formula)) angle = Math.PI / 2 + (i ? 1 : -1) * 0.9;
+      else if (others.length === 2 && LINEAR.has(data.formula)) angle = i ? 0 : Math.PI;
+      else angle = -Math.PI / 2 + (i / others.length) * Math.PI * 2;
+      a.tx = cx + Math.cos(angle) * dist;
+      a.ty = cy + Math.sin(angle) * dist;
+    });
+    const born = performance.now();
+    group.forEach(a => { a.fused = true; a.born = born; a.vx = a.vy = 0; });
+    molecules.push({ center, others, formula: data.formula, born });
+    burst(cx, cy);
+    showHud(data);
+    Bot.celebrate(data);
+    toast(data.new_discovery ? `${data.name} added to your profile!` : `${data.name} is already in your collection.`);
+  }
+
+  function burst(x, y) {
+    const palette = Object.values(ELEMENTS).map(e => e.color);
+    for (let i = 0; i < 36; i++) {
+      const angle = Math.random() * Math.PI * 2, speed = 2 + Math.random() * 5;
+      particles.push({
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1.5,
+        life: 1, size: 4 + Math.random() * 6, color: palette[i % palette.length],
+      });
+    }
+  }
+
+  /* --- result card --- */
+  function showHud(data) {
+    $('#hudFormula').textContent = data.formula;
+    $('#hudTitle').textContent = data.name;
+    $('#hudDesc').textContent = data.description;
+    $('#hudSafety').textContent = data.safety_warnings;
+    $('#hudUses').textContent = data.industrial_uses;
+    $('#hudSaved').textContent = data.new_discovery ? '✓ Added to your profile' : '✓ Already in your profile';
+    $('#hud').classList.add('show');
+    armHudTimer();
+  }
+  // Auto-hide after a few seconds; hovering the card keeps it open so it can be read
+  const HUD_SECONDS = 4;
+  let hudTimer = null;
+  function armHudTimer() { clearTimeout(hudTimer); hudTimer = setTimeout(closeHud, HUD_SECONDS * 1000); }
+  function closeHud() { clearTimeout(hudTimer); $('#hud').classList.remove('show'); }
+  $('#hudClose').onclick = closeHud;
+  $('#hud').addEventListener('pointerenter', () => clearTimeout(hudTimer));
+  $('#hud').addEventListener('pointerleave', () => { if ($('#hud').classList.contains('show')) armHudTimer(); });
+
+  /* --- grabbing (mouse, touch, or hand) --- */
+  function atomAt(x, y, slack = 0) {
+    for (let i = atoms.length - 1; i >= 0; i--) {
+      const a = atoms[i];
+      if (!a.fused && Math.hypot(a.x - x, a.y - y) <= a.r + slack) return a;
+    }
+    return null;
+  }
+  function grab(x, y, slack) {
+    const a = atomAt(x, y, slack);
+    if (!a) return null;
+    grabbed = a;
+    atoms.push(atoms.splice(atoms.indexOf(a), 1)[0]);
+    a.vx = a.vy = 0;
+    return a;
+  }
+  // in hand mode the webcam panel covers the bottom-left, so atoms must stay out of that rectangle
+  function panelRect() {
+    const hp = $('#handHelp');
+    if (!hand.on || !hp.classList.contains('show')) return null;
+    const c = canvas.getBoundingClientRect(), r = hp.getBoundingClientRect();
+    return { x: r.left - c.left - 6, y: r.top - c.top - 6, w: r.width + 12, h: r.height + 12 };
+  }
+  function keepOut(a, rect) {
+    if (!rect) return;
+    const nx = Math.min(Math.max(a.x, rect.x), rect.x + rect.w), ny = Math.min(Math.max(a.y, rect.y), rect.y + rect.h);
+    const dx = a.x - nx, dy = a.y - ny;
+    if (Math.hypot(dx, dy) >= a.r) return;
+    // push out through the nearest edge: right or up
+    if (rect.x + rect.w + a.r - a.x < a.y - (rect.y - a.r)) { a.x = rect.x + rect.w + a.r; a.vx = Math.abs(a.vx); }
+    else { a.y = rect.y - a.r; a.vy = -Math.abs(a.vy); }
+  }
+  function dragTo(x, y) {
+    if (!grabbed) return;
+    grabbed.x = Math.min(Math.max(x, grabbed.r), W - grabbed.r);
+    grabbed.y = Math.min(Math.max(y, grabbed.r), H - grabbed.r);
+    keepOut(grabbed, panelRect());
+  }
+  function release() {
+    if (!grabbed) return;
+    const a = grabbed;
+    grabbed = null;
+    a.vx = (Math.random() - .5) * .5; a.vy = (Math.random() - .5) * .5;
+    evaluateAround(a);
+  }
+
+  const pos = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  canvas.addEventListener('pointerdown', (e) => {
+    if (hand.on) return;
+    const [x, y] = pos(e);
+    if (grab(x, y, 6)) { canvas.setPointerCapture(e.pointerId); canvas.classList.add('grabbing'); }
+  });
+  canvas.addEventListener('pointermove', (e) => { if (grabbed && !hand.on) dragTo(...pos(e)); });
+  const endPointer = () => { canvas.classList.remove('grabbing'); if (!hand.on) release(); };
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+
+  /* --- loop --- */
+  function update(now) {
+    if (hand.cursor && hand.target) {
+      // runs every display frame, so motion stays smooth between camera frames
+      hand.cursor.x += (hand.target.x - hand.cursor.x) * .25;
+      hand.cursor.y += (hand.target.y - hand.cursor.y) * .25;
+      if (grabbed) dragTo(hand.cursor.x, hand.cursor.y);
+    }
+    const rect = panelRect();
+    for (const a of atoms) {
+      if (a.debris) {
+        a.x += a.vx; a.y += a.vy;
+      } else if (a.fused) {
+        a.x += (a.tx - a.x) * .18; a.y += (a.ty - a.y) * .18;
+      } else if (a !== grabbed) {
+        a.x += a.vx; a.y += a.vy;
+        keepOut(a, rect);
+        if (a.x < a.r) { a.x = a.r; a.vx = Math.abs(a.vx); }
+        if (a.x > W - a.r) { a.x = W - a.r; a.vx = -Math.abs(a.vx); }
+        if (a.y < a.r) { a.y = a.r; a.vy = Math.abs(a.vy); }
+        if (a.y > H - a.r) { a.y = H - a.r; a.vy = -Math.abs(a.vy); }
+      }
+    }
+    molecules = molecules.filter(m => now - m.born < FUSE_LIFETIME);
+    atoms = atoms.filter(a => a.debris ? now - a.dtime < 1400 : (!a.fused || now - a.born < FUSE_LIFETIME));
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .15; p.life -= .016; });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  const fade = (born, now) => 1 - Math.min(Math.max((now - born - (FUSE_LIFETIME - 900)) / 900, 0), 1);
+
+  function drawAtom(a, now) {
+    const alpha = a.fused ? fade(a.born, now) : 1;
+    const wobble = now < a.shakeUntil ? Math.sin(now / 25) * 7 : 0;
+    const r = a === grabbed ? a.r * 1.08 : a.r;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(a.x + wobble, a.y);
+    ctx.beginPath(); ctx.arc(4, 5, r, 0, Math.PI * 2); ctx.fillStyle = INK; ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = a.color; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = INK; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, r * .72, Math.PI * 1.1, Math.PI * 1.45);
+    ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.stroke();
+    ctx.fillStyle = INK;
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * r * .28, -r * .3, r * .08, 0, Math.PI * 2); ctx.fill(); }
+    ctx.font = `700 ${Math.round(r * .62)}px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(a.symbol, 0, r * .22);
+    ctx.restore();
+  }
+
+  function drawBonds(m, now) {
+    ctx.save();
+    ctx.globalAlpha = fade(m.born, now);
+    ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.strokeStyle = INK;
+    for (const o of m.others) { ctx.beginPath(); ctx.moveTo(m.center.x, m.center.y); ctx.lineTo(o.x, o.y); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawLabel(m, now) {
+    const x = m.center.x, y = Math.max(m.center.y, ...m.others.map(o => o.y)) + 70;
+    ctx.save();
+    ctx.globalAlpha = fade(m.born, now);
+    ctx.font = `700 22px ${FONT}`;
+    const w = ctx.measureText(m.formula).width + 32;
+    ctx.fillStyle = '#8fe3b5'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(x - w / 2, y - 18, w, 36, 18); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(m.formula, x, y + 1);
+    ctx.restore();
+  }
+
+  function draw(now) {
+    ctx.clearRect(0, 0, W, H);
+    molecules.forEach(m => drawBonds(m, now));
+    atoms.forEach(a => drawAtom(a, now));
+    molecules.forEach(m => drawLabel(m, now));
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(p.life, 0);
+      ctx.fillStyle = p.color; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    if (hand.cursor) {
+      ctx.beginPath(); ctx.arc(hand.cursor.x, hand.cursor.y, hand.pinching ? 9 : 14, 0, Math.PI * 2);
+      ctx.fillStyle = hand.pinching ? '#8fe3b5' : '#fff'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = INK; ctx.stroke();
+    }
+  }
+
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    if (!api_.visible) return;
+    update(now); draw(now);
+  }
+
+  /* --- optional hand tracking --- */
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src; s.crossOrigin = 'anonymous'; s.onload = resolve; s.onerror = reject;
+      document.head.append(s);
+    });
+  }
+
+  function setHandStatus(text) {
+    const pill = $('#handStatus');
+    pill.hidden = !text;
+    pill.textContent = text || '';
+  }
+
+  const HAND_LINES = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+  const overlay = $('#handOverlay'), octx = overlay.getContext('2d');
+  function setChip(text, pinch) {
+    const chip = $('#handChip');
+    chip.textContent = text; chip.classList.toggle('pinch', !!pinch);
+  }
+  function drawSkeleton(lm) {
+    octx.clearRect(0, 0, overlay.width, overlay.height);
+    if (!lm) return;
+    const w = overlay.width, h = overlay.height;
+    octx.lineWidth = 3; octx.strokeStyle = '#8fe3b5'; octx.lineCap = 'round';
+    HAND_LINES.forEach(([a, b]) => { octx.beginPath(); octx.moveTo(lm[a].x * w, lm[a].y * h); octx.lineTo(lm[b].x * w, lm[b].y * h); octx.stroke(); });
+    lm.forEach((p, i) => { octx.beginPath(); octx.arc(p.x * w, p.y * h, i === 4 || i === 8 ? 6 : 3, 0, Math.PI * 2); octx.fillStyle = i === 4 || i === 8 ? '#ff9db8' : '#fff'; octx.fill(); });
+  }
+
+  async function startHand() {
+    $('#handHelp').classList.add('show');
+    setChip('Starting camera\u2026');
+    setHandStatus('Starting camera…');
+    try {
+      if (!window.Hands) {
+        await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js');
+      }
+      const hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+      hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: .65, minTrackingConfidence: .65 });
+      hands.onResults(onHand);
+      const video = $('#webcam');
+      const camera = new Camera(video, { onFrame: async () => { await hands.send({ image: video }); }, width: 640, height: 480 });
+      await camera.start();
+      Object.assign(hand, { on: true, hands, camera });
+      applyScale();
+      $('#handBtn').textContent = '🖐 Hand mode: on';
+      setHandStatus('Pinch to grab');
+      setChip('Show your hand');
+      if (!hasSaved) startCal();
+    } catch (err) {
+      console.error(err);
+      stopHand();
+      toast('Could not start the camera. Mouse and touch still work!');
+    }
+  }
+
+  function stopHand() {
+    if (hand.pinching) { hand.pinching = false; release(); }
+    if (hand.camera) hand.camera.stop();
+    clearTimeout(lostTimer); lostTimer = null;
+    fx.reset(); fy.reset(); fgap.reset();
+    Object.assign(hand, { on: false, cursor: null, target: null, pinching: false, camera: null, hands: null });
+    cal.active = false; fistSince = 0; $('#handCal').textContent = 'Calibrate';
+    applyScale();
+    $('#handHelp').classList.remove('show');
+    drawSkeleton(null);
+    $('#handBtn').textContent = '🖐 Hand mode';
+    setHandStatus('');
+  }
+
+  // One Euro filter: heavy smoothing when slow (kills jitter), light when fast (no lag)
+  class OneEuro {
+    constructor(minCutoff = 1.0, beta = 0.02, dCutoff = 1.0) {
+      Object.assign(this, { minCutoff, beta, dCutoff, x: null, dx: 0, t: 0 });
+    }
+    static alpha(cutoff, dt) { const tau = 1 / (2 * Math.PI * cutoff); return 1 / (1 + tau / dt); }
+    reset() { this.x = null; this.dx = 0; }
+    filter(v, tMs) {
+      if (this.x === null) { this.x = v; this.t = tMs; return v; }
+      const dt = Math.max((tMs - this.t) / 1000, 1e-3);
+      this.t = tMs;
+      const rawD = (v - this.x) / dt;
+      this.dx += OneEuro.alpha(this.dCutoff, dt) * (rawD - this.dx);
+      const cutoff = this.minCutoff + this.beta * Math.abs(this.dx);
+      this.x += OneEuro.alpha(cutoff, dt) * (v - this.x);
+      return this.x;
+    }
+  }
+  const fx = new OneEuro(0.8, 0.012), fy = new OneEuro(0.8, 0.012), fgap = new OneEuro(1.5, 0);
+  let lostTimer = null;
+
+  /* --- calibration: learn this person's open/closed pinch distances --- */
+  const DEFAULT_THRESH = { grab: .22, release: .38 };
+  let thresh = { ...DEFAULT_THRESH };
+  let hasSaved = false;
+  try {
+    const saved = JSON.parse(localStorage.getItem('vc_pinch') || 'null');
+    if (saved && saved.grab > 0 && saved.release > saved.grab) { thresh = saved; hasSaved = true; }
+  } catch { /* ignore bad data */ }
+
+  const cal = { active: false };
+  const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+
+  function startCal() {
+    Object.assign(cal, { active: true, count: 0, min: Infinity, max: 0, peak: 0, dip: Infinity, inPinch: false, dips: [], peaks: [] });
+    if (hand.pinching) { hand.pinching = false; release(); }
+    $('#handCal').textContent = 'Skip';
+    setHandStatus('Calibrating');
+  }
+  function endCal(done) {
+    cal.active = false;
+    $('#handCal').textContent = 'Recalibrate';
+    setHandStatus('Pinch to grab');
+    if (done) {
+      const closed = median(cal.dips), open = median(cal.peaks);
+      const grab = Math.min(Math.max(closed + .30 * (open - closed), .12), .32);
+      const rel = Math.min(Math.max(closed + .55 * (open - closed), grab + .08), .6);
+      thresh = { grab, release: rel };
+      hasSaved = true;
+      localStorage.setItem('vc_pinch', JSON.stringify(thresh));
+      toast('Calibrated! Hand mode now fits your hand.');
+    }
+  }
+  function calStep(gap) {
+    cal.min = Math.min(cal.min, gap);
+    cal.max = Math.max(cal.max, gap);
+    if (!cal.inPinch) cal.peak = Math.max(cal.peak, gap);
+    const range = cal.max - cal.min;
+    if (range < .25) return;
+    const lo = cal.min + .3 * range, hi = cal.min + .7 * range;
+    if (gap < lo) { cal.inPinch = true; cal.dip = Math.min(cal.dip, gap); }
+    else if (cal.inPinch && gap > hi) {
+      cal.dips.push(cal.dip); cal.peaks.push(cal.peak);
+      cal.count++; cal.inPinch = false; cal.dip = Infinity; cal.peak = gap;
+      if (cal.count >= 3) { endCal(true); return; }
+    }
+    setChip(`Pinch ${3 - cal.count} more time${cal.count === 2 ? '' : 's'}`);
+  }
+
+  /* --- fist held for a second clears the table --- */
+  const FIST_HOLD_MS = 1000;
+  let fistSince = 0, fistLatched = false;
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  // which fingers are straight: fingertip farther from the wrist than its middle joint
+  function fingers(lm) {
+    const ext = ([tipI, pipI]) => dist(lm[tipI], lm[0]) > dist(lm[pipI], lm[0]) * 1.08;
+    const size = dist(lm[0], lm[9]) || 1;
+    return {
+      index: ext([8, 6]), middle: ext([12, 10]), ring: ext([16, 14]), pinky: ext([20, 18]),
+      thumb: dist(lm[4], lm[5]) / size > .8,
+    };
+  }
+  const isFist = (f) => !f.index && !f.middle && !f.ring && !f.pinky && !f.thumb;
+
+  /* --- gestures that trigger easter eggs --- */
+  const GESTURE_HOLD_MS = 600, GESTURE_COOLDOWN_MS = 5000;
+  let gestureName = '', gestureSince = 0, gestureBlockedUntil = 0, fistStart = 0;
+  const GESTURES = {
+    thumbsup: { label: 'Thumbs up', egg: 'laugh', text: 'Thumbs up! Laughing gas, ha ha!' },
+    peace: { label: 'Peace sign', egg: 'breathe', text: 'Peace! Take a deep breath of O\u2082.' },
+    rock: { label: 'Rock sign', egg: 'sodium', text: 'Rock on! Sodium meets water: splash!' },
+    tilt: { label: 'Tilt your hand', egg: 'pour', text: 'Pouring a glass of water, H\u2082O!' },
+  };
+  function classify(lm, f) {
+    const open4 = f.index && f.middle && f.ring && f.pinky;
+    if (f.thumb && !f.index && !f.middle && !f.ring && !f.pinky && lm[4].y < lm[3].y && lm[4].y < lm[5].y) return 'thumbsup';
+    if (f.index && f.middle && !f.ring && !f.pinky) return 'peace';
+    if (f.index && f.pinky && !f.middle && !f.ring) return 'rock';
+    if (open4) {
+      const dx = lm[9].x - lm[0].x, dy = lm[9].y - lm[0].y;
+      if (Math.acos(-dy / (Math.hypot(dx, dy) || 1)) > 1.2) return 'tilt';
+    }
+    return '';
+  }
+  // returns true when a gesture is being held, so normal pinching is paused
+  function gestureStep(lm, f, now) {
+    const open4 = f.index && f.middle && f.ring && f.pinky;
+    // a quick fist that bursts open = explosion
+    if (isFist(f)) { if (!fistStart) fistStart = now; }
+    else if (fistStart) {
+      const held = now - fistStart; fistStart = 0;
+      if (open4 && held > 250 && held < 950 && now > gestureBlockedUntil) {
+        gestureBlockedUntil = now + GESTURE_COOLDOWN_MS;
+        summon('bomb', 'BOOM! You made a cartoon H-bomb with your hand.');
+        return false;
+      }
+    }
+    if (summoning || now < gestureBlockedUntil) { gestureName = ''; return summoning; }
+    const name = classify(lm, f);
+    if (name !== gestureName) { gestureName = name; gestureSince = now; }
+    if (!name) return false;
+    const held = now - gestureSince;
+    if (held >= GESTURE_HOLD_MS) {
+      gestureBlockedUntil = now + GESTURE_COOLDOWN_MS; gestureName = '';
+      const g = GESTURES[name];
+      summon(g.egg, g.text);
+    } else setChip(`${GESTURES[name].label}\u2026`);
+    return true;
+  }
+
+  function onHand(results) {
+    const lm = results.multiHandLandmarks && results.multiHandLandmarks[0];
+    const now = performance.now();
+    drawSkeleton(lm);
+    if (!lm) {
+      setChip('No hand seen');
+      // brief tracking dropouts shouldn't drop the atom
+      if (!lostTimer) lostTimer = setTimeout(() => {
+        lostTimer = null;
+        hand.target = null; hand.cursor = null;
+        fx.reset(); fy.reset(); fgap.reset();
+        if (hand.pinching) { hand.pinching = false; release(); }
+      }, 350);
+      return;
+    }
+    clearTimeout(lostTimer); lostTimer = null;
+
+    const tip = lm[8], thumb = lm[4];
+    // pinch midpoint is steadier than the fingertip alone
+    const px = (1 - (tip.x + thumb.x) / 2) * W;
+    const py = ((tip.y + thumb.y) / 2) * H;
+    hand.target = { x: fx.filter(px, now), y: fy.filter(py, now) };
+    if (!hand.cursor) hand.cursor = { ...hand.target };
+
+    // pinch distance relative to hand size so it works at any distance from the camera
+    const size = Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y) || 1;
+    const gap = fgap.filter(Math.hypot(tip.x - thumb.x, tip.y - thumb.y) / size, now);
+
+    if (cal.active) { calStep(gap); return; }
+
+    const f = fingers(lm);
+    if (!hand.pinching && !isFist(f) && gestureStep(lm, f, now)) { fistSince = 0; return; }
+    if (isFist(f)) gestureStep(lm, f, now);
+    if (isFist(f)) {
+      if (hand.pinching) { hand.pinching = false; release(); }
+      if (!fistSince) fistSince = now;
+      if (fistLatched) { setChip('Fist (open hand to continue)'); return; }
+      const held = now - fistSince;
+      if (held >= FIST_HOLD_MS) { fistLatched = true; reset(); setChip('Cleared!'); }
+      else setChip(`Clearing\u2026 ${Math.ceil((FIST_HOLD_MS - held) / 100) / 10}s`);
+      return;
+    }
+    fistSince = 0; fistLatched = false;
+
+    setChip(hand.pinching ? 'Pinching!' : 'Open hand', hand.pinching);
+    if (!hand.pinching && gap < thresh.grab) {
+      hand.pinching = true;
+      setChip('Pinching!', true);
+      grab(hand.cursor.x, hand.cursor.y, 30 * scale());
+    } else if (hand.pinching && gap > thresh.release) {
+      hand.pinching = false;
+      release();
+    }
+  }
+
+  /* --- quiet clues about secrets, only for ones not found yet --- */
+  const CLUES = [
+    { egg: 'bomb', text: 'psst\u2026 six hydrogens in one place look a little nervous.' },
+    { egg: 'sodium', text: 'psst\u2026 sodium has a famous grudge against water.' },
+    { egg: 'pour', text: 'psst\u2026 an odd mix of H and O might be a surprise.', mouseOnly: true },
+    { egg: 'laugh', text: 'hmm\u2026 is there a gas that makes people giggle?' },
+    { egg: 'breathe', text: 'two of the same atom can be surprisingly alive.' },
+    { egg: 'pour', text: 'in hand mode: tip your open hand like a jug.', hand: true },
+    { egg: 'bomb', text: 'in hand mode: make a fist, then burst it open.', hand: true },
+    { egg: 'breathe', text: 'in hand mode: a peace sign calms the air.', hand: true },
+    { egg: 'laugh', text: 'in hand mode: a thumbs up is a happy one.', hand: true },
+    { egg: 'sodium', text: 'in hand mode: try the rock sign.', hand: true },
+  ];
+  let clueIdx = 0;
+  const whisper = $('#whisper');
+  setInterval(() => {
+    if (!api_.visible) return;
+    const open = CLUES.filter(c => !Eggs.found.has(c.egg) && (hand.on ? true : !c.hand));
+    if (!open.length) { whisper.classList.remove('show'); return; }
+    whisper.classList.remove('show');
+    setTimeout(() => {
+      const c = open[clueIdx++ % open.length];
+      whisper.textContent = c.text; whisper.classList.add('show');
+      setTimeout(() => whisper.classList.remove('show'), 6000);
+    }, 1300);
+  }, 14000);
+
+  $('#handCal').onclick = () => { if (!hand.on) return; if (cal.active) endCal(false); else startCal(); };
+  $('#handHelpClose').onclick = () => { if (hand.on) stopHand(); else $('#handHelp').classList.remove('show'); };
+  $('#handBtn').onclick = () => (hand.on ? stopHand() : startHand());
+  $('#resetBtn').onclick = reset;
+
+  const palette = $('#palette');
+  Object.entries(ELEMENTS).forEach(([symbol, cfg]) => {
+    const btn = el('button', 'atom-btn', symbol);
+    btn.type = 'button';
+    btn.style.background = cfg.color;
+    btn.title = `Add ${symbol}`;
+    btn.onclick = () => spawn(symbol, cfg.r * scale() + Math.random() * (W - cfg.r * 2 * scale()), cfg.r * scale() + 10);
+    palette.append(btn);
+  });
+
+  window.addEventListener('resize', resize);
+
+  return Object.assign(api_, {
+    resize,
+    start() {
+      if (running) return;
+      running = true;
+      requestAnimationFrame(() => { resize(); reset(); });
+      requestAnimationFrame(frame);
+    },
+    stop() {
+      running = false;
+      if (hand.on) stopHand();
+      closeHud();
+    },
+  });
+})();
+
+/* ---------- boot ---------- */
+(async function init() {
+  if (!session.token) return;
+  try {
+    const me = await api('/api/auth/me');
+    session.user = me.username;
+    enterApp();
+  } catch {
+    leaveApp();
+  }
+})();
+</script>
+</body>
+</html>
